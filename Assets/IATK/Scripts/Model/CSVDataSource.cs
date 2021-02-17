@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using System.Linq;
+using System.Globalization;
 
 namespace IATK
 {
@@ -353,7 +354,7 @@ namespace IATK
                                     case DataType.Float:
                                         {
                                             double result = 0.0f;
-                                            double.TryParse(cleanedValue, out result);
+                                            double.TryParse(cleanedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
                                             dataArray[i - 1, k] = (float)result;
                                             break;
                                         }

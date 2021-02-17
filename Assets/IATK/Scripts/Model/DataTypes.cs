@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Globalization;
 
 namespace IATK
 {
@@ -75,7 +76,7 @@ namespace IATK
         private static bool isFloat(string value)
         {
             float res = 0.0f;
-            return float.TryParse(value, out res);
+            return float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out res);
         }
 
         private static bool isDate(string value)
