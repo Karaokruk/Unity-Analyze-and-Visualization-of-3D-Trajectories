@@ -245,6 +245,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43f2a736f2d805342a0d2ae93b1eb194, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  port: 5000
+  fileNames:
+  - Participant_7_HeadPositionLog.csv
 --- !u!1 &1982567205
 GameObject:
   m_ObjectHideFlags: 0

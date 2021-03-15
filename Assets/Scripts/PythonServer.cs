@@ -1,24 +1,31 @@
 using System;
 using System.Net;
 //using System.Collections;
-//using System.IO;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
+
 using UnityEngine;
+using UnityEngine.UI;
 
 
 
 public class PythonServer : MonoBehaviour {
-    System.Threading.Thread socketThread;
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
+    public int port;
+    public String[] fileNames;
+    private String dataDir = "";
+
+    System.Threading.Thread socketThread;
     Socket listener;
     Socket handler;
     String data = null;
     
     void Start(){
         Application.runInBackground = true;
+        dataDir += Application.dataPath + "/Datasets/";
     }
 
     void Update(){
@@ -35,11 +42,11 @@ public class PythonServer : MonoBehaviour {
             GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
         else {
             GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
-            String str = "Data : ";
-            if(data != null)
-                str += data.ToString();
-            GUI.Label(new Rect(2, 30, 1500, 100), str);
         }
+        String str = "Data : ";
+        if(data != null)
+            str += data.ToString();
+        GUI.Label(new Rect(2, 30, 1500, 100), str);
     }
 
     // SOCKET FUNCTIONS //
@@ -64,9 +71,9 @@ public class PythonServer : MonoBehaviour {
     void NetworkCode(){
         Byte[] bytes = new Byte[1024];
 
-        Debug.Log("Ip " + GetIpAddress().ToString());
+        Debug.Log("Ip : " + GetIpAddress().ToString() + " on port " + port.ToString());
         IPAddress[] ipArray = Dns.GetHostAddresses(GetIpAddress());
-        IPEndPoint localEndPoint = new IPEndPoint(ipArray[0], 5000);
+        IPEndPoint localEndPoint = new IPEndPoint(ipArray[0], port);
 
         listener = new Socket(ipArray[0].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
@@ -83,8 +90,18 @@ public class PythonServer : MonoBehaviour {
 
                 while(keepReading){
                     bytes = new Byte[1024];
-                    int bytesRec = handler.Receive(bytes);
-                    Debug.Log("Received from Server");
+                    Byte[] bytesToSend;
+                    int bytesRec;
+
+                    foreach (String f in fileNames){
+                        Debug.Log("Passing file " + f + " to python...");
+                        bytesToSend = Encoding.UTF8.GetBytes(dataDir + f);
+                        handler.Send(bytesToSend);
+                        bytesRec = handler.Receive(bytes);
+                    }
+
+                    bytesRec = handler.Receive(bytes);
+                    //Debug.Log("Received from Server");
 
                     if(bytesRec <= 0){
                         keepReading = false;
@@ -96,14 +113,10 @@ public class PythonServer : MonoBehaviour {
                     if(data.IndexOf("<EOF>") > -1)
                         break;
 
-                    Byte[] bytesToSend = Encoding.UTF8.GetBytes("Message sent to Unity");
-                    //try{
+                    bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
+
                     handler.Send(bytesToSend);
                     Debug.Log("Message sent back to Python");
-                    //} catch (SocketException e){
-                    //    Debug.Log("ERROR WHILE SENDING BACK A MESSAGE : " + e);
-                    //    break;
-                    //}
 
                     System.Threading.Thread.Sleep(1);
                 }
@@ -112,17 +125,18 @@ public class PythonServer : MonoBehaviour {
         } catch(Exception e){
             Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
         }
-        Debug.Log("Finishing Listening");
         StopServer();
-        isAtStartup = true;
     }
 
     void StopServer(){
+        isAtStartup = true;
         keepReading = false;
-
-        if(socketThread != null)
+        
+        if(socketThread != null){
             socketThread.Abort();
-
+            Debug.Log("Aborting socket. You must reload the Unity program to re-aquire data...");
+        }
+        
         if(handler != null && handler.Connected){
             handler.Disconnect(false);
             Debug.Log("Disconnected");
