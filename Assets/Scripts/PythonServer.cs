@@ -1,6 +1,7 @@
 using System;
 using System.Net;
-//using System.Collections;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -17,6 +18,7 @@ public class PythonServer : MonoBehaviour {
     public int port;
     public String[] fileNames;
     private String dataDir = "";
+    //public List<String> fileNamesList = new List<string>();
 
     System.Threading.Thread socketThread;
     Socket listener;
@@ -77,6 +79,8 @@ public class PythonServer : MonoBehaviour {
 
         listener = new Socket(ipArray[0].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
+        int size = fileNames.Length;
+
         try{
             listener.Bind(localEndPoint);
             listener.Listen(10);
@@ -93,11 +97,16 @@ public class PythonServer : MonoBehaviour {
                     Byte[] bytesToSend;
                     int bytesRec;
 
+                    bytesToSend = Encoding.UTF8.GetBytes(size.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+
                     foreach (String f in fileNames){
                         Debug.Log("Passing file " + f + " to python...");
                         bytesToSend = Encoding.UTF8.GetBytes(dataDir + f);
                         handler.Send(bytesToSend);
                         bytesRec = handler.Receive(bytes);
+                        Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
                     }
 
                     bytesRec = handler.Receive(bytes);
