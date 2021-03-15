@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
-
-
 
 public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
@@ -21,9 +20,10 @@ public class PythonServer : MonoBehaviour {
     //public List<String> fileNamesList = new List<string>();
 
     System.Threading.Thread socketThread;
-    Socket listener;
-    Socket handler;
-    String data = null;
+    private Socket listener;
+    private Socket handler;
+    private String assignmentsData = null;
+    private String trajectoriesData = null;
     
     void Start(){
         Application.runInBackground = true;
@@ -35,6 +35,7 @@ public class PythonServer : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
                 StartServer();
+                DisplayTrajectories();
             }
         }
     }
@@ -42,13 +43,13 @@ public class PythonServer : MonoBehaviour {
     void OnGUI(){
         if(isAtStartup)
             GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
-        else {
+        else
             GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
-        }
-        String str = "Data : ";
-        if(data != null)
-            str += data.ToString();
+        String str = "Assignments: ";
+        if (assignmentsData != null)
+            str += assignmentsData.ToString();
         GUI.Label(new Rect(2, 30, 1500, 100), str);
+        // TODO : les trajectoires
     }
 
     // SOCKET FUNCTIONS //
@@ -117,9 +118,9 @@ public class PythonServer : MonoBehaviour {
                         handler.Disconnect(true);
                         break;
                     }
-                    data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    Debug.Log(data);
-                    if(data.IndexOf("<EOF>") > -1)
+                    assignmentsData += Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    Debug.Log(assignmentsData);
+                    if(assignmentsData.IndexOf("<EOF>") > -1)
                         break;
 
                     bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
@@ -154,6 +155,32 @@ public class PythonServer : MonoBehaviour {
 
     void OnDisable(){
         StopServer();
+    }
+
+    // Trajectories part //
+
+    public void DisplayTrajectories()
+    {
+        assignmentsData = "[0, 1]"; // to comment
+        trajectoriesData = "[[[1, 1], [2, 2], [3, 3], [4, 4]], [[1, 1], [2, 2], [2, 3], [3, 4]]]"; // to comment
+
+        // Assignments data parsing
+        assignmentsData = assignmentsData.Substring(1, assignmentsData.Length - 2); // erase first & last characters
+        Debug.Log(assignmentsData);
+
+        String[] assignmentStrings = assignmentsData.Split(',');
+        int[] assignments = new int[assignmentStrings.Length];
+        int size = 0;
+        foreach (String assignment in assignmentStrings)
+        {
+            assignments[size] = int.Parse(assignment);
+            Debug.Log(assignment[size]);
+            size++;
+        }
+
+        // Trajectories data parsing
+
+        // TODO
     }
 }
 
