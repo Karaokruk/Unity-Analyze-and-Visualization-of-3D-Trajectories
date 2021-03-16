@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
-
-
 
 public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
@@ -23,11 +22,11 @@ public class PythonServer : MonoBehaviour {
     public bool softKMean = true;
     public int softKMeanBeta = 1000;
     private String dataDir = "";
-
     System.Threading.Thread socketThread;
-    Socket listener;
-    Socket handler;
-    String data = null;
+    private Socket listener;
+    private Socket handler;
+    private String assignmentsData = null;
+    private String filesData = null;
     
     void Start(){
         Application.runInBackground = true;
@@ -39,6 +38,7 @@ public class PythonServer : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
                 StartServer();
+                DisplayTrajectories();
             }
         }
     }
@@ -46,13 +46,13 @@ public class PythonServer : MonoBehaviour {
     void OnGUI(){
         if(isAtStartup)
             GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
-        else {
+        else
             GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
-        }
-        String str = "Data : ";
-        if(data != null)
-            str += data.ToString();
+        String str = "Assignments: ";
+        if (assignmentsData != null)
+            str += assignmentsData.ToString();
         GUI.Label(new Rect(2, 30, 1500, 100), str);
+        // TODO : les trajectoires
     }
 
     // SOCKET FUNCTIONS //
@@ -76,7 +76,7 @@ public class PythonServer : MonoBehaviour {
 
     void NetworkCode(){
         Byte[] bytes = new Byte[1024];
-        data = null;
+        assignmentsData = null;
 
         Debug.Log("Ip : " + GetIpAddress().ToString() + " on port " + port.ToString());
         IPAddress[] ipArray = Dns.GetHostAddresses(GetIpAddress());
@@ -147,9 +147,9 @@ public class PythonServer : MonoBehaviour {
                         handler.Disconnect(true);
                         break;
                     }
-                    data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    Debug.Log(data);
-                    if(data.IndexOf("<EOF>") > -1)
+                    assignmentsData += Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                    Debug.Log(assignmentsData);
+                    if(assignmentsData.IndexOf("<EOF>") > -1)
                         break;
 
                     bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
@@ -185,6 +185,54 @@ public class PythonServer : MonoBehaviour {
 
     void OnDisable(){
         StopServer();
+    }
+
+    // Trajectories part //
+
+    public static void PrintStringArray(String[] str_array)
+    {
+        foreach (String str in str_array)
+            Debug.Log(str);
+    }
+
+    public static void PrintListOfListOfInt(List<List<int>> l)
+    {
+        foreach (List<int> list in l)
+            foreach (int i in list)
+                Debug.Log(i);
+    }
+    
+    private String[] ParseStringArray(String str)
+    {
+        String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
+        tmp = String.Join("", tmp.Split(' ', '\"')); // erase all ' ' and '"'
+        print(tmp);
+        String[] str_array = tmp.Split(',');
+        return str_array;
+    }
+
+    private List<List<int>> ParseListOfListOfInts(String str)
+    {
+        String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
+        List<List<int>> a = new List<List<int>>();
+        Stack bracketCounter;
+        //int.Parse(assignment);
+        return a;
+    }
+
+    public void DisplayTrajectories()
+    {
+        assignmentsData = "[[0], [1]]"; // to comment
+        filesData = "[\"participant7trial1-ontask-quarter\", \"Participant_7_HeadPositionLog\"]"; // to comment
+
+        /*
+        // Assignments data parsing
+        List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
+        PrintListOfListOfInt(assignments);
+        */
+        // Trajectories files data parsing
+        String[] fileNames = ParseStringArray(filesData);
+        PrintStringArray(fileNames);
     }
 }
 
