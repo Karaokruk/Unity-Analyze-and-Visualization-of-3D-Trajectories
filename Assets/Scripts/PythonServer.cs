@@ -17,13 +17,13 @@ public class PythonServer : MonoBehaviour {
     public int port;
     public String[] fileNames;
     private String dataDir = "";
-    //public List<String> fileNamesList = new List<string>();
+    //public List<String> fileNamesList = new List<String>();
 
     System.Threading.Thread socketThread;
     private Socket listener;
     private Socket handler;
     private String assignmentsData = null;
-    private String trajectoriesData = null;
+    private String filesData = null;
     
     void Start(){
         Application.runInBackground = true;
@@ -159,28 +159,50 @@ public class PythonServer : MonoBehaviour {
 
     // Trajectories part //
 
+    public static void PrintStringArray(String[] str_array)
+    {
+        foreach (String str in str_array)
+            Debug.Log(str);
+    }
+
+    public static void PrintListOfListOfInt(List<List<int>> l)
+    {
+        foreach (List<int> list in l)
+            foreach (int i in list)
+                Debug.Log(i);
+    }
+    
+    private String[] ParseStringArray(String str)
+    {
+        String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
+        tmp = String.Join("", tmp.Split(' ', '\"')); // erase all ' ' and '"'
+        print(tmp);
+        String[] str_array = tmp.Split(',');
+        return str_array;
+    }
+
+    private List<List<int>> ParseListOfListOfInts(String str)
+    {
+        String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
+        List<List<int>> a = new List<List<int>>();
+        Stack bracketCounter;
+        //int.Parse(assignment);
+        return a;
+    }
+
     public void DisplayTrajectories()
     {
-        assignmentsData = "[0, 1]"; // to comment
-        trajectoriesData = "[[[1, 1], [2, 2], [3, 3], [4, 4]], [[1, 1], [2, 2], [2, 3], [3, 4]]]"; // to comment
+        assignmentsData = "[[0], [1]]"; // to comment
+        filesData = "[\"participant7trial1-ontask-quarter\", \"Participant_7_HeadPositionLog\"]"; // to comment
 
+        /*
         // Assignments data parsing
-        assignmentsData = assignmentsData.Substring(1, assignmentsData.Length - 2); // erase first & last characters
-        Debug.Log(assignmentsData);
-
-        String[] assignmentStrings = assignmentsData.Split(',');
-        int[] assignments = new int[assignmentStrings.Length];
-        int size = 0;
-        foreach (String assignment in assignmentStrings)
-        {
-            assignments[size] = int.Parse(assignment);
-            Debug.Log(assignment[size]);
-            size++;
-        }
-
-        // Trajectories data parsing
-
-        // TODO
+        List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
+        PrintListOfListOfInt(assignments);
+        */
+        // Trajectories files data parsing
+        String[] fileNames = ParseStringArray(filesData);
+        PrintStringArray(fileNames);
     }
 }
 
