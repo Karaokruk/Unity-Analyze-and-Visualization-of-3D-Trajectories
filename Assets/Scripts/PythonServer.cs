@@ -14,8 +14,13 @@ public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
-    public int port;
     public String[] fileNames;
+    public int csvWriteMethod = 0;
+    public int port;
+    public int kmeans = 3;
+    public int kmeanMethod = 1;
+    public bool softKMean = true;
+    public int softKMeanBeta = 1000;
     private String dataDir = "";
     System.Threading.Thread socketThread;
     private Socket listener;
@@ -98,10 +103,36 @@ public class PythonServer : MonoBehaviour {
                     bytes = new Byte[1024];
                     Byte[] bytesToSend;
                     int bytesRec;
-
+                    // Sending the writing method number
+                    bytesToSend = Encoding.UTF8.GetBytes(csvWriteMethod.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    // Sending the number of files
                     bytesToSend = Encoding.UTF8.GetBytes(size.ToString());
                     handler.Send(bytesToSend);
                     bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    // Sending the number of kmeans
+                    bytesToSend = Encoding.UTF8.GetBytes(kmeans.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    // Sending the kmean method number
+                    bytesToSend = Encoding.UTF8.GetBytes(kmeanMethod.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    // Sending the soft kmean boolean
+                    bytesToSend = Encoding.UTF8.GetBytes(softKMean.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    // Sending the soft kmean beta argument
+                    bytesToSend = Encoding.UTF8.GetBytes(softKMeanBeta.ToString());
+                    handler.Send(bytesToSend);
+                    bytesRec = handler.Receive(bytes);
+                    Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
 
                     foreach (String f in fileNames){
                         Debug.Log("Passing file " + f + " to python...");
