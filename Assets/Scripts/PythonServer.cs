@@ -17,8 +17,6 @@ public class PythonServer : MonoBehaviour {
     public int port;
     public String[] fileNames;
     private String dataDir = "";
-    //public List<String> fileNamesList = new List<String>();
-
     System.Threading.Thread socketThread;
     private Socket listener;
     private Socket handler;
@@ -73,6 +71,7 @@ public class PythonServer : MonoBehaviour {
 
     void NetworkCode(){
         Byte[] bytes = new Byte[1024];
+        assignmentsData = null;
 
         Debug.Log("Ip : " + GetIpAddress().ToString() + " on port " + port.ToString());
         IPAddress[] ipArray = Dns.GetHostAddresses(GetIpAddress());
@@ -111,7 +110,6 @@ public class PythonServer : MonoBehaviour {
                     }
 
                     bytesRec = handler.Receive(bytes);
-                    //Debug.Log("Received from Server");
 
                     if(bytesRec <= 0){
                         keepReading = false;
@@ -124,16 +122,22 @@ public class PythonServer : MonoBehaviour {
                         break;
 
                     bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
-
                     handler.Send(bytesToSend);
                     Debug.Log("Message sent back to Python");
-
-                    System.Threading.Thread.Sleep(1);
+                    break;
+                    //System.Threading.Thread.Sleep(1);
                 }
-                System.Threading.Thread.Sleep(1);
+                //System.Threading.Thread.Sleep(1);
+                break;
             }
         } catch(Exception e){
             Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
+        }
+                        
+        if(handler != null && handler.Connected){
+            handler.Disconnect(false);
+            listener.Close();
+            Debug.Log("Disconnected");
         }
         StopServer();
     }
@@ -145,11 +149,6 @@ public class PythonServer : MonoBehaviour {
         if(socketThread != null){
             socketThread.Abort();
             Debug.Log("Aborting socket. You must reload the Unity program to re-aquire data...");
-        }
-        
-        if(handler != null && handler.Connected){
-            handler.Disconnect(false);
-            Debug.Log("Disconnected");
         }
     }
 
