@@ -22,6 +22,8 @@ public class PythonServer : MonoBehaviour {
     private Socket handler;
     private String assignmentsData = null;
     private String filesData = null;
+
+    public GameObject trajectoryPrefab;
     
     void Start(){
         Application.runInBackground = true;
@@ -32,7 +34,7 @@ public class PythonServer : MonoBehaviour {
         if(isAtStartup){
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
-                StartServer();
+                //StartServer();
                 DisplayTrajectories();
             }
         }
@@ -158,9 +160,9 @@ public class PythonServer : MonoBehaviour {
 
     // Trajectories part //
 
-    public static void PrintStringArray(String[] str_array)
+    public static void PrintListOfString(List<String> l)
     {
-        foreach (String str in str_array)
+        foreach (String str in l)
             Debug.Log(str);
     }
 
@@ -171,37 +173,64 @@ public class PythonServer : MonoBehaviour {
                 Debug.Log(i);
     }
     
-    private String[] ParseStringArray(String str)
+    private List<String> ParseListOfString(String str)
     {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
         tmp = String.Join("", tmp.Split(' ', '\"')); // erase all ' ' and '"'
-        print(tmp);
         String[] str_array = tmp.Split(',');
-        return str_array;
+        return str_array.ToList<String>();
     }
 
     private List<List<int>> ParseListOfListOfInts(String str)
     {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
-        List<List<int>> a = new List<List<int>>();
-        Stack bracketCounter;
-        //int.Parse(assignment);
-        return a;
+        int bracket_counter = 0;
+        Debug.Log(tmp);
+        int size = tmp.Length;
+        char[] tmp_array = new char[size];
+        for (int i = 0; i < size; i++) 
+        {
+            if (tmp[i] == '[') bracket_counter++;
+            else if (tmp[i] == ']') bracket_counter--;
+            tmp_array[i] = (bracket_counter == 0 && tmp[i] == ',') ? ';' : tmp[i];
+        }
+        String[] str_array = (new String(tmp_array)).Split(';');
+        List<List<int>> l = new List<List<int>>();
+        foreach (String s in str_array)
+        {
+            tmp = String.Join("", s.Split(' ')); // erase all ' '
+            tmp = tmp.Substring(1, tmp.Length - 2); // erase first & last characters
+            String[] assignementsStrings = tmp.Split(',');
+            List<int> fileAssignments = new List<int>();
+            foreach (String a in assignementsStrings)
+                fileAssignments.Add(int.Parse(a.ToString()));
+            l.Add(fileAssignments);
+        }
+        return l;
     }
 
     public void DisplayTrajectories()
     {
-        assignmentsData = "[[0], [1]]"; // to comment
+        assignmentsData = "[[0, 0, 1], [1, 0, 2]]"; // to comment
         filesData = "[\"participant7trial1-ontask-quarter\", \"Participant_7_HeadPositionLog\"]"; // to comment
 
-        /*
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
         PrintListOfListOfInt(assignments);
-        */
+        
         // Trajectories files data parsing
-        String[] fileNames = ParseStringArray(filesData);
-        PrintStringArray(fileNames);
+        List<String> fileNames = ParseListOfString(filesData);
+        PrintListOfString(fileNames);
+
+        // Create Trajectories objects
+        // TODO
+        int x = 0;
+        GameObject t;
+        for (int i = 0; i < assignments.Count; i++)
+        {
+            t = Instantiate(trajectoryPrefab, new Vector3(x, x, x), Quaternion.identity);
+            t.transform.parent = transform;
+        }
     }
 }
 
