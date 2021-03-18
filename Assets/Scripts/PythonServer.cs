@@ -301,10 +301,18 @@ public class PythonServer : MonoBehaviour {
             dataVisualisation.dataSource = dataSource;
             dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
             dataVisualisation.visualisationType = IATK.AbstractVisualisation.VisualisationTypes.SCATTERPLOT;
-            //dataVisualisation.xScatterplotMatrixDimensions = "x";
+            dataVisualisation.xDimension = new DimensionFilter { Attribute = "x" };
+            dataVisualisation.yDimension = new DimensionFilter { Attribute = "y" };
+            dataVisualisation.zDimension = new DimensionFilter { Attribute = "z" };
+            dataVisualisation.geometry = AbstractVisualisation.GeometryType.Points;
+            //dataVisualisation.linkingDimension = new DimensionFilter { Attribute = "TrajectoryID" };
             
             // TODO
-
+            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.X);
+            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.Y);
+            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.Z);
+            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.GeometryType);
+            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.LinkingDimension);
             // Don't forget to update the view
         }
     }
