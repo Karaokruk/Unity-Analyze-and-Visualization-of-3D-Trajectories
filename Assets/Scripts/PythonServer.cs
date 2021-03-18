@@ -34,26 +34,14 @@ public class PythonServer : MonoBehaviour {
 
     public GameObject trajectoryPrefab;
     
-    void Start(){
-        Application.runInBackground = true;
+    void Start() {
         dataDir += Application.dataPath + "/Resources/Datasets/";
+        StartServer();
+        DisplayTrajectories();
     }
 
-    void Update(){
-        if(isAtStartup){
-            if(Input.GetKeyDown(KeyCode.Space)){
-                isAtStartup = false;
-                StartServer();
-                DisplayTrajectories();
-            }
-        }
-    }
-
-    void OnGUI(){
-        if(isAtStartup)
-            GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
-        else
-            GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
+    void OnGUI() {
+        GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
         String str = "Assignments: ";
         if (assignmentsData != null)
             str += assignmentsData.ToString();
@@ -63,7 +51,7 @@ public class PythonServer : MonoBehaviour {
 
     // PYTHON LAUNCHER FUNCTION //
 
-    void ExecPythonScript(){
+    void ExecPythonScript() {
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = pythonPath;
 
@@ -80,7 +68,6 @@ public class PythonServer : MonoBehaviour {
 
         UnityEngine.Debug.Log("Starting Python script...");
         Process.Start(psi);
-
     }
 
     // SOCKET FUNCTIONS //
@@ -96,8 +83,8 @@ public class PythonServer : MonoBehaviour {
         IPHostEntry host;
         String localIp = "";
         host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach(IPAddress ip in host.AddressList){
-            if(ip.AddressFamily == AddressFamily.InterNetwork)
+        foreach (IPAddress ip in host.AddressList) {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
                 localIp = ip.ToString();
         }
         return localIp;
@@ -116,12 +103,12 @@ public class PythonServer : MonoBehaviour {
         Byte[] bytesToSend;
         int bytesRec = handler.Receive(bytes);
 
-        if(bytesRec <= 0)
+        if (bytesRec <= 0)
             return null;
         
         data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
         UnityEngine.Debug.Log(data);
-        if(data.IndexOf("<EOF>") > -1)
+        if (data.IndexOf("<EOF>") > -1)
             return null;
 
         bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
@@ -146,7 +133,7 @@ public class PythonServer : MonoBehaviour {
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
-            while(true){
+            while (true) {
                 keepReading = true;
                 UnityEngine.Debug.Log("Waiting for Connection");
                 ExecPythonScript();
@@ -154,7 +141,7 @@ public class PythonServer : MonoBehaviour {
                 handler = listener.Accept();
                 UnityEngine.Debug.Log("Client Connected");
 
-                while(keepReading){
+                while (keepReading) {
                     // Sending the writing method number
                     SendMessageToPython(Encoding.UTF8.GetBytes(csvWriteMethod.ToString()));
                     // Sending the number of files
@@ -168,16 +155,31 @@ public class PythonServer : MonoBehaviour {
                     // Sending the soft kmean beta argument
                     SendMessageToPython(Encoding.UTF8.GetBytes(softKMeanBeta.ToString()));
 
-                    foreach (String f in fileNames){
+                    foreach (String f in fileNames) {
                         UnityEngine.Debug.Log("Passing file " + f + " to python...");
                         SendMessageToPython(Encoding.UTF8.GetBytes(dataDir + f));
                     }
 
                     // Receiving Assignment data
-                    assignmentsData += ReceiveMessageFromPython();
-                    filesData += ReceiveMessageFromPython();
+                    while (true) {
+                        String a = ReceiveMessageFromPython();
+                        assignmentsData += a;
+                        if(a.Length < 1024){
+                            UnityEngine.Debug.Log("Done getting Assignment.");
+                            break;
+                        }
+                    }
 
-                    if(assignmentsData == null || filesData == null){
+                    while (true) {
+                        String f = ReceiveMessageFromPython();
+                        filesData += f;
+                        if(f.Length < 1024){
+                            UnityEngine.Debug.Log("Done getting File Data.");
+                            break;
+                        }
+                    }
+
+                    if (assignmentsData == null || filesData == null) {
                         keepReading = false;
                         handler.Disconnect(true);
                         break;
@@ -187,77 +189,70 @@ public class PythonServer : MonoBehaviour {
                 break;
             }
             StopServer();
-        } catch(Exception e){
+        } catch(Exception e) {
             UnityEngine.Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
             StopServer();
         }
-        DisplayTrajectories();
     }
 
-    void StopServer(){
+    void StopServer() {
         isAtStartup = true;
         keepReading = false;
         
-        if(socketThread != null){
+        if (socketThread != null) {
             socketThread.Abort();
             UnityEngine.Debug.Log("Aborting socket. You must reload the Unity program to re-aquire data...");
         }
-        if(handler != null && handler.Connected){
+        if (handler != null && handler.Connected) {
             handler.Disconnect(false);
             listener.Close();
             UnityEngine.Debug.Log("Disconnected");
         }
+        UnityEngine.Debug.Log(filesData);
     }
 
-    void OnDisable(){
+    void OnDisable() {
         StopServer();
     }
 
     // Trajectories part //
 
-    public static Color randomColorFromInt(int i)
-    {
+    public static Color randomColorFromInt(int i) {
         return Color.HSVToRGB(i * 3 % 10 / 10f, 1f, 1f);
     }
 
-    public static void PrintListOfString(List<String> l)
-    {
+    public static void PrintListOfString(List<String> l) {
         foreach (String str in l)
             UnityEngine.Debug.Log(str);
     }
 
-    public static void PrintListOfListOfInt(List<List<int>> l)
-    {
+    public static void PrintListOfListOfInt(List<List<int>> l) {
         foreach (List<int> list in l)
             foreach (int i in list)
                 UnityEngine.Debug.Log(i);
     }
     
-    private List<String> ParseListOfString(String str)
-    {
+    private List<String> ParseListOfString(String str) {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
-        tmp = String.Join("", tmp.Split(' ', '\"', '\'')); // erase all ' ', '"' and '''
+        tmp = String.Join("", tmp.Split(' ', '\"', '\'')); // erase specific characters
         String[] str_array = tmp.Split(',');
         return str_array.ToList<String>();
     }
 
-    private List<List<int>> ParseListOfListOfInts(String str)
-    {
+    private List<List<int>> ParseListOfListOfInts(String str) {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
         int bracket_counter = 0;
         //UnityEngine.Debug.Log(tmp);
         int size = tmp.Length;
         char[] tmp_array = new char[size];
-        for (int i = 0; i < size; i++) 
-        {
+        for (int i = 0; i < size; i++) {
             if (tmp[i] == '[') bracket_counter++;
             else if (tmp[i] == ']') bracket_counter--;
             tmp_array[i] = (bracket_counter == 0 && tmp[i] == ',') ? ';' : tmp[i];
         }
         String[] str_array = (new String(tmp_array)).Split(';');
         List<List<int>> l = new List<List<int>>();
-        foreach (String s in str_array)
-        {
+        foreach (String s in str_array) {
             tmp = String.Join("", s.Split(' ')); // erase all ' '
             tmp = tmp.Substring(1, tmp.Length - 2); // erase first & last characters
             String[] assignementsStrings = tmp.Split(',');
@@ -269,8 +264,7 @@ public class PythonServer : MonoBehaviour {
         return l;
     }
 
-    public void DisplayTrajectories()
-    {
+    public void DisplayTrajectories() {
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
         //PrintListOfListOfInt(assignments);
@@ -280,20 +274,16 @@ public class PythonServer : MonoBehaviour {
         //PrintListOfString(fileNames);
 
         // Create Trajectories objects
-        int x = 0;
-        GameObject t;
-        for (int i = 0; i < assignments.Count; i++)
-        {
-            t = Instantiate(trajectoryPrefab, new Vector3(x++, assignments[i][0], 0), Quaternion.identity); // TODO
+        int nb_files = assignments.Count;
+        int[] assignments_counter = new int[nb_files];
+        Array.Clear(assignments_counter, 0, nb_files); // Fills array with 0s
+        for (int i = 0; i < assignments.Count; i++) {
+            GameObject t = Instantiate(trajectoryPrefab, new Vector3(assignments_counter[assignments[i][0]]++, assignments[i][0], 0), Quaternion.identity);
             t.transform.parent = transform;
 
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
-            //UnityEditor.AssetDatabase.ImportAsset(fileNames[1]);
-            TextAsset csv = Resources.Load(fileNames[i]) as TextAsset;
-            //UnityEngine.Debug.Log("uuhhh " + fileNames[i]);
-            //UnityEngine.Debug.Log(csv);
-            dataSource.data = csv;
+            dataSource.data = Resources.Load(fileNames[i]) as TextAsset;
             // TODO
 
             // set up visualisation
