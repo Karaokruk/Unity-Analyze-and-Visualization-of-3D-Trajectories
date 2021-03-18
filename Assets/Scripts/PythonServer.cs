@@ -71,6 +71,7 @@ public class PythonServer : MonoBehaviour {
 
         //String script = @"C:\Users\Anton\Documents\COURS\M2\PFE\Analyze-and-Visualization-of-3D-Trajectories\scripts\socket_sender.py";
         //String script = "../../../scripts/socket_sender.py";
+        scriptPath = Directory.GetCurrentDirectory() + "../scripts/socket_sender.py";
         String py_ip = GetIpAddress().ToString();
 
         psi.Arguments = $"\"{scriptPath}\" \"{py_ip}\" \"{port}\"";
@@ -284,7 +285,7 @@ public class PythonServer : MonoBehaviour {
     public void DisplayTrajectories()
     {
         assignmentsData = "[[0], [1], [0], [2], [1]]"; // to comment
-        filesData = "[\"../Datasets/participant7trial1-ontask-quarter.csv\", \"Assets/Datasets/Participant_7_HeadPositionLog.csv\"]"; // to comment
+        filesData = "[\"Datasets/participant7trial1-ontask-quarter\", \"Datasets/Participant_7_HeadPositionLog.csv\"]"; // to comment
 
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
@@ -306,8 +307,8 @@ public class PythonServer : MonoBehaviour {
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
             //UnityEditor.AssetDatabase.ImportAsset(fileNames[1]);
-            TextAsset csv = Resources.Load("Datasets/Participant_7_HeadPositionLog.csv") as TextAsset;
-            UnityEngine.Debug.Log(fileNames[1]);
+            TextAsset csv = Resources.Load(fileNames[0]) as TextAsset;
+            UnityEngine.Debug.Log(fileNames[0]);
             UnityEngine.Debug.Log(csv);
             dataSource.data = csv;
             // TODO
@@ -316,6 +317,8 @@ public class PythonServer : MonoBehaviour {
             Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
             dataVisualisation.dataSource = dataSource;
             dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
+            dataVisualisation.visualisationType = IATK.AbstractVisualisation.VisualisationTypes.SCATTERPLOT;
+            //dataVisualisation.visualisationReference.xDimension.Attribute = "CameraPosition.x";
             
             // TODO
 
