@@ -17,11 +17,11 @@ public class PythonServer : MonoBehaviour {
     private bool isAtStartup = true;
 
     public String pythonPath = "python";
+    public int connexionPort;
     public String[] fileNames;
-    public int csvWriteMethod = 0;
-    public int port;
-    public int kmeans = 3;
-    public int kmeanMethod = 1;
+    public int csvWritingMethod = 0;
+    public int KMeanClusters = 3;
+    public int KMeanMethod = 1;
     public bool softKMean = true;
     public int softKMeanBeta = 1000;
     private String dataDir = "";
@@ -59,7 +59,7 @@ public class PythonServer : MonoBehaviour {
         UnityEngine.Debug.Log(scriptPath);
         String pyIp = GetIpAddress().ToString();
 
-        psi.Arguments = $"\"{scriptPath}\" \"{pyIp}\" \"{port}\"";
+        psi.Arguments = $"\"{scriptPath}\" \"{pyIp}\" \"{connexionPort}\"";
 
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
@@ -122,9 +122,9 @@ public class PythonServer : MonoBehaviour {
         assignmentsData = null;
         filesData = null;
 
-        UnityEngine.Debug.Log("Ip : " + GetIpAddress().ToString() + " on port " + port.ToString());
+        UnityEngine.Debug.Log("Ip : " + GetIpAddress().ToString() + " on connexionPort " + connexionPort.ToString());
         IPAddress[] ipArray = Dns.GetHostAddresses(GetIpAddress());
-        IPEndPoint localEndPoint = new IPEndPoint(ipArray[0], port);
+        IPEndPoint localEndPoint = new IPEndPoint(ipArray[0], connexionPort);
         listener = new Socket(ipArray[0].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
         int size = fileNames.Length;
@@ -143,13 +143,13 @@ public class PythonServer : MonoBehaviour {
 
                 while (keepReading) {
                     // Sending the writing method number
-                    SendMessageToPython(Encoding.UTF8.GetBytes(csvWriteMethod.ToString()));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(csvWritingMethod.ToString()));
                     // Sending the number of files
                     SendMessageToPython(Encoding.UTF8.GetBytes(size.ToString()));
                     // Sending the number of kmeans
-                    SendMessageToPython(Encoding.UTF8.GetBytes(kmeans.ToString()));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(KMeanClusters.ToString()));
                     // Sending the kmean method number
-                    SendMessageToPython(Encoding.UTF8.GetBytes(kmeanMethod.ToString()));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(KMeanMethod.ToString()));
                     // Sending the soft kmean boolean
                     SendMessageToPython(Encoding.UTF8.GetBytes(softKMean.ToString()));
                     // Sending the soft kmean beta argument

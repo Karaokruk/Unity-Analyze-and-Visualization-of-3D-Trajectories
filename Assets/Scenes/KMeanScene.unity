@@ -154,7 +154,7 @@ MonoBehaviour:
   fileNames:
   - Participant_7_HeadPositionLog.csv
   csvWriteMethod: 0
-  port: 50000
+  connexionPort: 50000
   kmeans: 3
   kmeanMethod: 1
   softKMean: 1
