@@ -112,7 +112,7 @@ public class PythonServer : MonoBehaviour {
 
     String ReceiveMessageFromPython(){
         String data = null;
-        Byte[] bytes = new Byte[1024];
+        Byte[] bytes = new Byte[2048];
         Byte[] bytesToSend;
         int bytesRec = handler.Receive(bytes);
 
@@ -236,7 +236,7 @@ public class PythonServer : MonoBehaviour {
     private List<String> ParseListOfString(String str)
     {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
-        tmp = String.Join("", tmp.Split(' ', '\"')); // erase all ' ' and '"'
+        tmp = String.Join("", tmp.Split(' ', '\"', '\'')); // erase all ' ', '"' and '''
         String[] str_array = tmp.Split(',');
         return str_array.ToList<String>();
     }
@@ -290,9 +290,9 @@ public class PythonServer : MonoBehaviour {
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
             //UnityEditor.AssetDatabase.ImportAsset(fileNames[1]);
-            TextAsset csv = Resources.Load("Dataset/" + fileNames[i]) as TextAsset;
-            // UnityEngine.Debug.Log("uh" + fileNames[i]);
-            // UnityEngine.Debug.Log(csv);
+            TextAsset csv = Resources.Load(fileNames[i]) as TextAsset;
+            //UnityEngine.Debug.Log("uuhhh " + fileNames[i]);
+            //UnityEngine.Debug.Log(csv);
             dataSource.data = csv;
             // TODO
 
