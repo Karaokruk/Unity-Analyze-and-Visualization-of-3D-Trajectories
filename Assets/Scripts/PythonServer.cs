@@ -173,8 +173,23 @@ public class PythonServer : MonoBehaviour {
                     }
 
                     // Receiving Assignment data
-                    assignmentsData += ReceiveMessageFromPython();
-                    filesData += ReceiveMessageFromPython();
+                    while(true){
+                        String a = ReceiveMessageFromPython();
+                        assignmentsData += a;
+                        if(a.Length < 1024){
+                            UnityEngine.Debug.Log("Done getting Assignment.");
+                            break;
+                        }
+                    }
+
+                    while(true){
+                        String f = ReceiveMessageFromPython();
+                        filesData += f;
+                        if(f.Length < 1024){
+                            UnityEngine.Debug.Log("Done getting File Data.");
+                            break;
+                        }
+                    }
 
                     if(assignmentsData == null || filesData == null){
                         keepReading = false;
@@ -190,7 +205,6 @@ public class PythonServer : MonoBehaviour {
             UnityEngine.Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
             StopServer();
         }
-
     }
 
     void StopServer(){
@@ -206,6 +220,7 @@ public class PythonServer : MonoBehaviour {
             listener.Close();
             UnityEngine.Debug.Log("Disconnected");
         }
+        UnityEngine.Debug.Log(filesData);
     }
 
     void OnDisable(){
@@ -270,8 +285,6 @@ public class PythonServer : MonoBehaviour {
 
     public void DisplayTrajectories()
     {
-        assignmentsData = "[[0], [1], [0], [2], [1]]"; // to comment
- 
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
         //PrintListOfListOfInt(assignments);
