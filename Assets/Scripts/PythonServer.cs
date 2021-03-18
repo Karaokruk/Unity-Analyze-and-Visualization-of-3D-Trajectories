@@ -44,7 +44,7 @@ public class PythonServer : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
                 StartServer();
-                //DisplayTrajectories();
+                DisplayTrajectories();
             }
         }
     }
@@ -89,6 +89,7 @@ public class PythonServer : MonoBehaviour {
         socketThread = new System.Threading.Thread(NetworkCode);
         socketThread.IsBackground = true;
         socketThread.Start();
+        socketThread.Join();
     }
 
     private String GetIpAddress() {
@@ -103,7 +104,7 @@ public class PythonServer : MonoBehaviour {
     }
 
     void SendMessageToPython(Byte[] bytesToSend){
-        Byte[] bytes = new Byte[1024];
+        Byte[] bytes = new Byte[5096];
         handler.Send(bytesToSend);
         int bytesRec = handler.Receive(bytes);
         UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
@@ -111,7 +112,7 @@ public class PythonServer : MonoBehaviour {
 
     String ReceiveMessageFromPython(){
         String data = null;
-        Byte[] bytes = new Byte[1024];
+        Byte[] bytes = new Byte[2048];
         Byte[] bytesToSend;
         int bytesRec = handler.Receive(bytes);
 
@@ -205,6 +206,7 @@ public class PythonServer : MonoBehaviour {
             UnityEngine.Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
             StopServer();
         }
+        DisplayTrajectories();
     }
 
     void StopServer(){
@@ -250,7 +252,7 @@ public class PythonServer : MonoBehaviour {
     private List<String> ParseListOfString(String str)
     {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
-        tmp = String.Join("", tmp.Split(' ', '\"')); // erase all ' ' and '"'
+        tmp = String.Join("", tmp.Split(' ', '\"', '\'')); // erase all ' ', '"' and '''
         String[] str_array = tmp.Split(',');
         return str_array.ToList<String>();
     }
@@ -294,7 +296,6 @@ public class PythonServer : MonoBehaviour {
         //PrintListOfString(fileNames);
 
         // Create Trajectories objects
-        // TODO
         int x = 0;
         GameObject t;
         for (int i = 0; i < assignments.Count; i++)
@@ -305,9 +306,9 @@ public class PythonServer : MonoBehaviour {
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
             //UnityEditor.AssetDatabase.ImportAsset(fileNames[1]);
-            TextAsset csv = Resources.Load("Datasets/Participant_7_HeadPositionLog.csv") as TextAsset;
-            UnityEngine.Debug.Log(fileNames[1]);
-            UnityEngine.Debug.Log(csv);
+            TextAsset csv = Resources.Load(fileNames[i]) as TextAsset;
+            //UnityEngine.Debug.Log("uuhhh " + fileNames[i]);
+            //UnityEngine.Debug.Log(csv);
             dataSource.data = csv;
             // TODO
 
@@ -315,6 +316,8 @@ public class PythonServer : MonoBehaviour {
             Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
             dataVisualisation.dataSource = dataSource;
             dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
+            dataVisualisation.visualisationType = IATK.AbstractVisualisation.VisualisationTypes.SCATTERPLOT;
+            //dataVisualisation.xScatterplotMatrixDimensions = "x";
             
             // TODO
 
