@@ -10,6 +10,7 @@ using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
+using IATK;
 
 public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
@@ -227,6 +228,11 @@ public class PythonServer : MonoBehaviour {
 
     // Trajectories part //
 
+    public static Color randomColorFromInt(int i)
+    {
+        return Color.HSVToRGB(i * 3 % 10 / 10f, 1f, 1f);
+    }
+
     public static void PrintListOfString(List<String> l)
     {
         foreach (String str in l)
@@ -278,7 +284,7 @@ public class PythonServer : MonoBehaviour {
 
     public void DisplayTrajectories()
     {
-        assignmentsData = "[[0, 0, 1], [1, 0, 2]]"; // to comment
+        assignmentsData = "[[0], [1], [2], [3], [4], [5], [6], [7], [8]]"; // to comment
         filesData = "[\"participant7trial1-ontask-quarter\", \"Participant_7_HeadPositionLog\"]"; // to comment
 
         // Assignments data parsing
@@ -295,8 +301,19 @@ public class PythonServer : MonoBehaviour {
         GameObject t;
         for (int i = 0; i < assignments.Count; i++)
         {
-            t = Instantiate(trajectoryPrefab, new Vector3(x, x, x), Quaternion.identity);
+            t = Instantiate(trajectoryPrefab, new Vector3(x++, assignments[i][0], 0), Quaternion.identity); // TODO
             t.transform.parent = transform;
+
+            // upload CSV file
+            CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
+            UnityEngine.Debug.Log(dataSource);
+            // TODO
+
+            // set up visualisation
+            Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
+            dataVisualisation.dataSource = dataSource;
+            dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
+            // TODO
         }
     }
 }
