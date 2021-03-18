@@ -46,7 +46,7 @@ public class PythonServer : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
                 StartServer();
-                //DisplayTrajectories();
+                DisplayTrajectories();
             }
         }
     }
@@ -86,7 +86,6 @@ public class PythonServer : MonoBehaviour {
         UnityEngine.Debug.Log("Starting Python script...");
         Process.Start(psi);
 
-        UnityEngine.Debug.Log("Zizi");
     }
 
     // SOCKET FUNCTIONS //
@@ -258,7 +257,7 @@ public class PythonServer : MonoBehaviour {
     {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
         int bracket_counter = 0;
-        UnityEngine.Debug.Log(tmp);
+        //UnityEngine.Debug.Log(tmp);
         int size = tmp.Length;
         char[] tmp_array = new char[size];
         for (int i = 0; i < size; i++) 
@@ -284,16 +283,16 @@ public class PythonServer : MonoBehaviour {
 
     public void DisplayTrajectories()
     {
-        assignmentsData = "[[0], [1], [2], [3], [4], [5], [6], [7], [8]]"; // to comment
-        filesData = "[\"participant7trial1-ontask-quarter\", \"Participant_7_HeadPositionLog\"]"; // to comment
+        assignmentsData = "[[0], [1], [0], [2], [1]]"; // to comment
+        filesData = "[\"../Datasets/participant7trial1-ontask-quarter.csv\", \"Assets/Datasets/Participant_7_HeadPositionLog.csv\"]"; // to comment
 
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
-        PrintListOfListOfInt(assignments);
+        //PrintListOfListOfInt(assignments);
         
         // Trajectories files data parsing
         List<String> fileNames = ParseListOfString(filesData);
-        PrintListOfString(fileNames);
+        //PrintListOfString(fileNames);
 
         // Create Trajectories objects
         // TODO
@@ -306,14 +305,21 @@ public class PythonServer : MonoBehaviour {
 
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
-            UnityEngine.Debug.Log(dataSource);
+            //UnityEditor.AssetDatabase.ImportAsset(fileNames[1]);
+            TextAsset csv = Resources.Load("Datasets/Participant_7_HeadPositionLog.csv") as TextAsset;
+            UnityEngine.Debug.Log(fileNames[1]);
+            UnityEngine.Debug.Log(csv);
+            dataSource.data = csv;
             // TODO
 
             // set up visualisation
             Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
             dataVisualisation.dataSource = dataSource;
             dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
+            
             // TODO
+
+            // Don't forget to update the view
         }
     }
 }
