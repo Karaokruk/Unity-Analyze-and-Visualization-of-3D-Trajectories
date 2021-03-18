@@ -16,9 +16,7 @@ public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
-    //C:\Users\Anton\AppData\Local\Microsoft\WindowsApps\python3.9.exe
     public String pythonPath = "python";
-    public String scriptPath;
     public String[] fileNames;
     public int csvWriteMethod = 0;
     public int port;
@@ -38,7 +36,7 @@ public class PythonServer : MonoBehaviour {
     
     void Start(){
         Application.runInBackground = true;
-        dataDir += Application.dataPath + "/Datasets/";
+        dataDir += Application.dataPath + "/Resources/Datasets/";
     }
 
     void Update(){
@@ -46,7 +44,7 @@ public class PythonServer : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.Space)){
                 isAtStartup = false;
                 StartServer();
-                DisplayTrajectories();
+                //DisplayTrajectories();
             }
         }
     }
@@ -69,19 +67,16 @@ public class PythonServer : MonoBehaviour {
         ProcessStartInfo psi = new ProcessStartInfo();
         psi.FileName = pythonPath;
 
-        //String script = @"C:\Users\Anton\Documents\COURS\M2\PFE\Analyze-and-Visualization-of-3D-Trajectories\scripts\socket_sender.py";
-        //String script = "../../../scripts/socket_sender.py";
-        String py_ip = GetIpAddress().ToString();
+        String scriptPath = Directory.GetCurrentDirectory() + "/../scripts/socket_sender.py";
+        UnityEngine.Debug.Log(scriptPath);
+        String pyIp = GetIpAddress().ToString();
 
-        psi.Arguments = $"\"{scriptPath}\" \"{py_ip}\" \"{port}\"";
+        psi.Arguments = $"\"{scriptPath}\" \"{pyIp}\" \"{port}\"";
 
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
         psi.RedirectStandardOutput = true;
         psi.RedirectStandardError = true;
-
-        var errors = "";
-        var results = "";
 
         UnityEngine.Debug.Log("Starting Python script...");
         Process.Start(psi);
@@ -107,9 +102,37 @@ public class PythonServer : MonoBehaviour {
         return localIp;
     }
 
-    void NetworkCode(){
+    void SendMessageToPython(Byte[] bytesToSend){
         Byte[] bytes = new Byte[1024];
+        handler.Send(bytesToSend);
+        int bytesRec = handler.Receive(bytes);
+        UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+    }
+
+    String ReceiveMessageFromPython(){
+        String data = null;
+        Byte[] bytes = new Byte[1024];
+        Byte[] bytesToSend;
+        int bytesRec = handler.Receive(bytes);
+
+        if(bytesRec <= 0)
+            return null;
+        
+        data += Encoding.UTF8.GetString(bytes, 0, bytesRec);
+        UnityEngine.Debug.Log(data);
+        if(data.IndexOf("<EOF>") > -1)
+            return null;
+
+        bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
+        handler.Send(bytesToSend);
+        UnityEngine.Debug.Log("Message sent back to Python");
+
+        return data;
+    }
+
+    void NetworkCode(){
         assignmentsData = null;
+        filesData = null;
 
         UnityEngine.Debug.Log("Ip : " + GetIpAddress().ToString() + " on port " + port.ToString());
         IPAddress[] ipArray = Dns.GetHostAddresses(GetIpAddress());
@@ -131,79 +154,43 @@ public class PythonServer : MonoBehaviour {
                 UnityEngine.Debug.Log("Client Connected");
 
                 while(keepReading){
-                    bytes = new Byte[1024];
-                    Byte[] bytesToSend;
-                    int bytesRec;
                     // Sending the writing method number
-                    bytesToSend = Encoding.UTF8.GetBytes(csvWriteMethod.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(csvWriteMethod.ToString()));
                     // Sending the number of files
-                    bytesToSend = Encoding.UTF8.GetBytes(size.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(size.ToString()));
                     // Sending the number of kmeans
-                    bytesToSend = Encoding.UTF8.GetBytes(kmeans.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(kmeans.ToString()));
                     // Sending the kmean method number
-                    bytesToSend = Encoding.UTF8.GetBytes(kmeanMethod.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(kmeanMethod.ToString()));
                     // Sending the soft kmean boolean
-                    bytesToSend = Encoding.UTF8.GetBytes(softKMean.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(softKMean.ToString()));
                     // Sending the soft kmean beta argument
-                    bytesToSend = Encoding.UTF8.GetBytes(softKMeanBeta.ToString());
-                    handler.Send(bytesToSend);
-                    bytesRec = handler.Receive(bytes);
-                    UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(softKMeanBeta.ToString()));
 
                     foreach (String f in fileNames){
                         UnityEngine.Debug.Log("Passing file " + f + " to python...");
-                        bytesToSend = Encoding.UTF8.GetBytes(dataDir + f);
-                        handler.Send(bytesToSend);
-                        bytesRec = handler.Receive(bytes);
-                        UnityEngine.Debug.Log(Encoding.UTF8.GetString(bytes, 0, bytesRec));
+                        SendMessageToPython(Encoding.UTF8.GetBytes(dataDir + f));
                     }
 
-                    bytesRec = handler.Receive(bytes);
+                    // Receiving Assignment data
+                    assignmentsData += ReceiveMessageFromPython();
+                    filesData += ReceiveMessageFromPython();
 
-                    if(bytesRec <= 0){
+                    if(assignmentsData == null || filesData == null){
                         keepReading = false;
                         handler.Disconnect(true);
                         break;
                     }
-                    assignmentsData += Encoding.UTF8.GetString(bytes, 0, bytesRec);
-                    UnityEngine.Debug.Log(assignmentsData);
-                    if(assignmentsData.IndexOf("<EOF>") > -1)
-                        break;
-
-                    bytesToSend = Encoding.UTF8.GetBytes("Unity : data received");
-                    handler.Send(bytesToSend);
-                    UnityEngine.Debug.Log("Message sent back to Python");
                     break;
-                    //System.Threading.Thread.Sleep(1);
                 }
-                //System.Threading.Thread.Sleep(1);
                 break;
             }
+            StopServer();
         } catch(Exception e){
             UnityEngine.Debug.Log("ERROR WHILE GETING DATA : " + e.ToString());
+            StopServer();
         }
-                        
-        if(handler != null && handler.Connected){
-            handler.Disconnect(false);
-            listener.Close();
-            UnityEngine.Debug.Log("Disconnected");
-        }
-        StopServer();
+
     }
 
     void StopServer(){
@@ -284,8 +271,7 @@ public class PythonServer : MonoBehaviour {
     public void DisplayTrajectories()
     {
         assignmentsData = "[[0], [1], [0], [2], [1]]"; // to comment
-        filesData = "[\"../Datasets/participant7trial1-ontask-quarter.csv\", \"Assets/Datasets/Participant_7_HeadPositionLog.csv\"]"; // to comment
-
+ 
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
         //PrintListOfListOfInt(assignments);
