@@ -13,15 +13,30 @@ using UnityEngine.UI;
 using IATK;
 
 public class PythonServer : MonoBehaviour {
+
+    public enum w_method {
+        OneCSVPerTrajectory,
+        OneCSVPerCluster,
+        OneCSV
+    };
+
+    public enum k_method {
+        Normal,
+        TranslationToOrigin,
+        UsingVectors
+    };
+
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
     public String pythonPath = "python";
     public int connexionPort;
     public String[] fileNames;
-    public int csvWritingMethod = 0;
+    //public int csvWritingMethod = 0;
+    public w_method csvWritingMethod = w_method.OneCSVPerTrajectory;
     public int KMeanClusters = 3;
-    public int KMeanMethod = 1;
+    //public int Kmeanmethod = 1;
+    public k_method KMeanMethod = k_method.Normal;
     public bool softKMean = true;
     public int softKMeanBeta = 1000;
     private String dataDir = "";
@@ -36,12 +51,24 @@ public class PythonServer : MonoBehaviour {
     
     void Start() {
         dataDir += Application.dataPath + "/Resources/Datasets/";
-        StartServer();
-        DisplayTrajectories();
+    }
+
+    void Update() {
+        if(isAtStartup) {
+            if(Input.GetKeyDown(KeyCode.Space)) {
+                isAtStartup = false;
+                StartServer();
+                DisplayTrajectories();
+            }
+        }
     }
 
     void OnGUI() {
-        GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
+        if(isAtStartup)
+            GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
+        else
+            GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
+        
         String str = "Assignments: ";
         if (assignmentsData != null)
             str += assignmentsData.ToString();
@@ -76,7 +103,7 @@ public class PythonServer : MonoBehaviour {
         socketThread = new System.Threading.Thread(NetworkCode);
         socketThread.IsBackground = true;
         socketThread.Start();
-        socketThread.Join();
+        //socketThread.Join();
     }
 
     private String GetIpAddress() {
@@ -143,13 +170,19 @@ public class PythonServer : MonoBehaviour {
 
                 while (keepReading) {
                     // Sending the writing method number
-                    SendMessageToPython(Encoding.UTF8.GetBytes(csvWritingMethod.ToString()));
+                    int csvMethod = 2;
+                    if(csvWritingMethod == w_method.OneCSVPerTrajectory) csvMethod = 0;
+                    if(csvWritingMethod == w_method.OneCSVPerCluster) csvMethod = 1;
+                    SendMessageToPython(Encoding.UTF8.GetBytes(csvMethod.ToString()));
                     // Sending the number of files
                     SendMessageToPython(Encoding.UTF8.GetBytes(size.ToString()));
                     // Sending the number of kmeans
                     SendMessageToPython(Encoding.UTF8.GetBytes(KMeanClusters.ToString()));
                     // Sending the kmean method number
-                    SendMessageToPython(Encoding.UTF8.GetBytes(KMeanMethod.ToString()));
+                    int kMean = 0;
+                    if(KMeanMethod == k_method.TranslationToOrigin) kMean = 1;
+                    if(KMeanMethod == k_method.UsingVectors) kMean = 2;
+                    SendMessageToPython(Encoding.UTF8.GetBytes(kMean.ToString()));
                     // Sending the soft kmean boolean
                     SendMessageToPython(Encoding.UTF8.GetBytes(softKMean.ToString()));
                     // Sending the soft kmean beta argument
