@@ -151,12 +151,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pythonPath: python
+  connexionPort: 50000
   fileNames:
   - Participant_7_HeadPositionLog.csv
-  csvWriteMethod: 0
-  connexionPort: 50000
-  kmeans: 3
-  kmeanMethod: 1
+  csvWritingMethod: 0
+  KMeanClusters: 3
+  KMeanMethod: 0
   softKMean: 1
   softKMeanBeta: 1000
   trajectoryPrefab: {fileID: 5579046588140726689, guid: 755c9663e6ddb35428c555a225d5aabc,

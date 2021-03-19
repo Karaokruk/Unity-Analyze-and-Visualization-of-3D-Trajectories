@@ -103,7 +103,7 @@ public class PythonServer : MonoBehaviour {
         socketThread = new System.Threading.Thread(NetworkCode);
         socketThread.IsBackground = true;
         socketThread.Start();
-        //socketThread.Join();
+        socketThread.Join();
     }
 
     private String GetIpAddress() {
@@ -328,8 +328,12 @@ public class PythonServer : MonoBehaviour {
             dataVisualisation.yDimension = new DimensionFilter { Attribute = "y" };
             dataVisualisation.zDimension = new DimensionFilter { Attribute = "z" };
             dataVisualisation.geometry = AbstractVisualisation.GeometryType.Points;
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.X);
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Y);
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Z);
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.VisualisationType);
             //dataVisualisation.linkingDimension = new DimensionFilter { Attribute = "TrajectoryID" };
-            
+
             // TODO
             // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.X);
             // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.Y);
