@@ -327,20 +327,14 @@ public class PythonServer : MonoBehaviour {
             dataVisualisation.xDimension = new DimensionFilter { Attribute = "x" };
             dataVisualisation.yDimension = new DimensionFilter { Attribute = "y" };
             dataVisualisation.zDimension = new DimensionFilter { Attribute = "z" };
-            dataVisualisation.geometry = AbstractVisualisation.GeometryType.Points;
+            dataVisualisation.geometry = AbstractVisualisation.GeometryType.Lines;
+            dataVisualisation.linkingDimension = "TrajectoryID";
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.X);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Y);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Z);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.VisualisationType);
-            //dataVisualisation.linkingDimension = new DimensionFilter { Attribute = "TrajectoryID" };
-
-            // TODO
-            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.X);
-            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.Y);
-            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.Z);
-            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.GeometryType);
-            // dataVisualisation.updateViewProperties(AbstractVisualisation.PropertyType.LinkingDimension);
-            // Don't forget to update the view
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.GeometryType);
+            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.LinkingDimension);
         }
     }
 }
