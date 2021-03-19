@@ -363,6 +363,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d82081063ee5c37438d0ccddec090766, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  turnSpeed: 4
-  panSpeed: 4
-  zoomSpeed: 4
+  turnSpeed: 1.5
+  panSpeed: 0.1
+  zoomSpeed: 0.5
