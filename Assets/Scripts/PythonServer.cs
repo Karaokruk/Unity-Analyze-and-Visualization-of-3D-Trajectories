@@ -38,7 +38,7 @@ public class PythonServer : MonoBehaviour {
     //public int Kmeanmethod = 1;
     public k_method KMeanMethod = k_method.Normal;
     public bool softKMean = true;
-    public int softKMeanBeta = 1000;
+    public float softKMeanBeta = 1000.0f;
     private String dataDir = "";
 
     System.Threading.Thread socketThread;
@@ -54,8 +54,8 @@ public class PythonServer : MonoBehaviour {
     }
 
     void Update() {
-        if(isAtStartup) {
-            if(Input.GetKeyDown(KeyCode.Space)) {
+        if (isAtStartup) {
+            if (Input.GetKeyDown(KeyCode.Space)) {
                 isAtStartup = false;
                 StartServer();
                 DisplayTrajectories();
@@ -64,7 +64,7 @@ public class PythonServer : MonoBehaviour {
     }
 
     void OnGUI() {
-        if(isAtStartup)
+        if (isAtStartup)
             GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
         else
             GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
@@ -73,7 +73,6 @@ public class PythonServer : MonoBehaviour {
         if (assignmentsData != null)
             str += assignmentsData.ToString();
         GUI.Label(new Rect(2, 30, 1500, 100), str);
-        // TODO : les trajectoires
     }
 
     // PYTHON LAUNCHER FUNCTION //
@@ -156,7 +155,7 @@ public class PythonServer : MonoBehaviour {
 
         int size = fileNames.Length;
 
-        try{
+        try {
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
@@ -254,17 +253,6 @@ public class PythonServer : MonoBehaviour {
         return Color.HSVToRGB(i * 3 % 10 / 10f, 1f, 1f);
     }
 
-    public static void PrintListOfString(List<String> l) {
-        foreach (String str in l)
-            UnityEngine.Debug.Log(str);
-    }
-
-    public static void PrintListOfListOfInt(List<List<int>> l) {
-        foreach (List<int> list in l)
-            foreach (int i in list)
-                UnityEngine.Debug.Log(i);
-    }
-    
     private List<String> ParseListOfString(String str) {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
         tmp = String.Join("", tmp.Split(' ', '\"', '\'')); // erase specific characters
@@ -275,7 +263,6 @@ public class PythonServer : MonoBehaviour {
     private List<List<int>> ParseListOfListOfInts(String str) {
         String tmp = str.Substring(1, str.Length - 2); // erase first & last characters
         int bracket_counter = 0;
-        //UnityEngine.Debug.Log(tmp);
         int size = tmp.Length;
         char[] tmp_array = new char[size];
         for (int i = 0; i < size; i++) {
@@ -300,11 +287,9 @@ public class PythonServer : MonoBehaviour {
     public void DisplayTrajectories() {
         // Assignments data parsing
         List<List<int>> assignments = ParseListOfListOfInts(assignmentsData);
-        //PrintListOfListOfInt(assignments);
         
         // Trajectories files data parsing
         List<String> fileNames = ParseListOfString(filesData);
-        //PrintListOfString(fileNames);
 
         // Create Trajectories objects
         int nb_files = assignments.Count;
@@ -317,7 +302,6 @@ public class PythonServer : MonoBehaviour {
             // upload CSV file
             CSVDataSource dataSource = t.transform.Find("[IATK] New Data Source").GetComponent<CSVDataSource>();
             dataSource.data = Resources.Load(fileNames[i]) as TextAsset;
-            // TODO
 
             // set up visualisation
             Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
