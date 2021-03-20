@@ -55,7 +55,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4036108348823641434}
   - component: {fileID: 1505733835184250959}
-  - component: {fileID: 6656500744484731359}
   m_Layer: 0
   m_Name: '[IATK] New Visualisation'
   m_TagString: Untagged
@@ -164,27 +163,8 @@ MonoBehaviour:
   height: 1
   depth: 1
   colorPaletteDimension: Undefined
-  theVisualizationObject: {fileID: 6656500744484731359}
+  theVisualizationObject: {fileID: 0}
   uid: 3b0881b2
---- !u!114 &6656500744484731359
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3837879799837359847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a371c45608c2e458976fa2e69ab4a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualisationReference: {fileID: 1505733835184250959}
-  viewList: []
-  GameObject_Axes_Holders: []
-  X_AXIS: {fileID: 0}
-  Y_AXIS: {fileID: 0}
-  Z_AXIS: {fileID: 0}
-  serializedObjectPath: SerializedFields
 --- !u!1 &5579046588140726689
 GameObject:
   m_ObjectHideFlags: 0

@@ -35,11 +35,17 @@ public class PythonServer : MonoBehaviour {
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
+    public GameObject trajectoryPrefab;
+
+    // Python parameters
     public String pythonPath = "python";
     public int connexionPort;
+
+    // K-Mean parameters
     public String[] fileNames;
     public w_method csvWritingMethod = w_method.OneCSVPerTrajectory;
     public int attuningGoal = 0;
+    [Range(0f, 1f)]
     public float attuningRatio = 0.98f;
     public int iterations = 20;
     public init_method clusterSelection = init_method.TotalNbOfClusters;
@@ -48,36 +54,30 @@ public class PythonServer : MonoBehaviour {
     public k_method KMeanMethod = k_method.Normal;
     public bool softKMean = true;
     public float softKMeanBeta = 1000.0f;
-    private String dataDir = "";
 
+
+    private String dataDir = "";
     System.Threading.Thread socketThread;
     private Socket listener;
     private Socket handler;
     private String assignmentsData = null;
     private String filesData = null;
-
-    public GameObject trajectoryPrefab;
     
     void Start() {
         dataDir += Application.dataPath + "/Resources/Datasets/";
+        UnityEngine.Debug.Log("Press Space to get data.");
     }
 
     void Update() {
-        if (isAtStartup) {
-            if (Input.GetKeyDown(KeyCode.Space)) {
-                isAtStartup = false;
-                StartServer();
-                DisplayTrajectories();
-            }
+        if (isAtStartup && Input.GetKeyDown(KeyCode.Space)) {
+            isAtStartup = false;
+            StartServer();
+            DisplayTrajectories();
         }
-        
     }
 
     void OnGUI() {
-        if (isAtStartup)
-            GUI.Label(new Rect(2, 10, 150, 100), "Press Space to get data");
-        else
-            GUI.Label(new Rect(2, 10, 150, 100), "Acquiring data...");
+        GUI.Label(new Rect(2, 10, 150, 100), (isAtStartup) ? "Press Space to get data" : "Acquiring data...");
         
         String str = "Assignments: ";
         if (assignmentsData != null)
@@ -108,10 +108,11 @@ public class PythonServer : MonoBehaviour {
 
     // SOCKET FUNCTIONS //
 
-    void StartServer() {
+    void StartServer()
+    {
+        UnityEngine.Debug.Log("Starting server...");
         socketThread = new System.Threading.Thread(NetworkCode);
         socketThread.IsBackground = true;
-        UnityEngine.Debug.Log("bjr");
 
         socketThread.Start();
         socketThread.Join();
@@ -181,9 +182,7 @@ public class PythonServer : MonoBehaviour {
 
                 while (keepReading) {
                     // Sending the writing method number
-                    int csvMethod = 2;
-                    if(csvWritingMethod == w_method.OneCSVPerTrajectory) csvMethod = 0;
-                    if(csvWritingMethod == w_method.OneCSVPerCluster) csvMethod = 1;
+                    int csvMethod = (csvWritingMethod == w_method.OneCSVPerTrajectory) ? 0 : ((csvWritingMethod == w_method.OneCSVPerCluster) ? 1 : 2);
                     SendMessageToPython(Encoding.UTF8.GetBytes(csvMethod.ToString()));
                     // Sending the number of files
                     SendMessageToPython(Encoding.UTF8.GetBytes(size.ToString()));
@@ -199,9 +198,7 @@ public class PythonServer : MonoBehaviour {
                     // Sending the number of kmeans
                     SendMessageToPython(Encoding.UTF8.GetBytes(KMeanClusters.ToString()));
                     // Sending the kmean method number
-                    int kMean = 0;
-                    if(KMeanMethod == k_method.TranslationToOrigin) kMean = 1;
-                    if(KMeanMethod == k_method.UsingVectors) kMean = 2;
+                    int kMean = (KMeanMethod == k_method.TranslationToOrigin) ? 1 : ((KMeanMethod == k_method.UsingVectors) ? 2 : 0);
                     SendMessageToPython(Encoding.UTF8.GetBytes(kMean.ToString()));
                     // Sending the soft kmean boolean
                     SendMessageToPython(Encoding.UTF8.GetBytes(softKMean.ToString()));
@@ -327,8 +324,8 @@ public class PythonServer : MonoBehaviour {
             // set up visualisation
             Visualisation dataVisualisation = t.transform.Find("[IATK] New Visualisation").GetComponent<Visualisation>();
             dataVisualisation.dataSource = dataSource;
+            dataVisualisation.CreateVisualisation(AbstractVisualisation.VisualisationTypes.SCATTERPLOT);
             dataVisualisation.colour = randomColorFromInt(assignments[i][0]);
-            dataVisualisation.visualisationType = IATK.AbstractVisualisation.VisualisationTypes.SCATTERPLOT;
             dataVisualisation.xDimension = new DimensionFilter { Attribute = "x" };
             dataVisualisation.yDimension = new DimensionFilter { Attribute = "y" };
             dataVisualisation.zDimension = new DimensionFilter { Attribute = "z" };
@@ -337,7 +334,6 @@ public class PythonServer : MonoBehaviour {
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.X);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Y);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.Z);
-            dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.VisualisationType);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.GeometryType);
             dataVisualisation.theVisualizationObject.UpdateVisualisation(AbstractVisualisation.PropertyType.LinkingDimension);
         }
