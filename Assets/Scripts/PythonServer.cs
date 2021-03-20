@@ -10,6 +10,7 @@ using System.Linq;
 
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEditor;
 using IATK;
 
 public class PythonServer : MonoBehaviour {
@@ -26,16 +27,24 @@ public class PythonServer : MonoBehaviour {
         UsingVectors
     };
 
+    public enum init_method {
+        TotalNbOfClusters,
+        ClustersPerLayout
+    };
+
     volatile bool keepReading = false;
     private bool isAtStartup = true;
 
     public String pythonPath = "python";
     public int connexionPort;
     public String[] fileNames;
-    //public int csvWritingMethod = 0;
     public w_method csvWritingMethod = w_method.OneCSVPerTrajectory;
+    public int attuningGoal = 0;
+    public float attuningRatio = 0.98f;
+    public int iterations = 20;
+    public init_method clusterSelection = init_method.TotalNbOfClusters;
     public int KMeanClusters = 3;
-    //public int Kmeanmethod = 1;
+    public bool randomize = false;
     public k_method KMeanMethod = k_method.Normal;
     public bool softKMean = true;
     public float softKMeanBeta = 1000.0f;
@@ -61,6 +70,7 @@ public class PythonServer : MonoBehaviour {
                 DisplayTrajectories();
             }
         }
+        
     }
 
     void OnGUI() {
@@ -101,6 +111,8 @@ public class PythonServer : MonoBehaviour {
     void StartServer() {
         socketThread = new System.Threading.Thread(NetworkCode);
         socketThread.IsBackground = true;
+        UnityEngine.Debug.Log("bjr");
+
         socketThread.Start();
         socketThread.Join();
     }
@@ -175,6 +187,15 @@ public class PythonServer : MonoBehaviour {
                     SendMessageToPython(Encoding.UTF8.GetBytes(csvMethod.ToString()));
                     // Sending the number of files
                     SendMessageToPython(Encoding.UTF8.GetBytes(size.ToString()));
+                    // Sending the attuning parameters
+                    SendMessageToPython(Encoding.UTF8.GetBytes(attuningGoal.ToString()));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(attuningRatio.ToString()));
+                    // Sending the number of iterations
+                    SendMessageToPython(Encoding.UTF8.GetBytes(iterations.ToString()));                    
+                    // Sending the type of selection
+                    int per_layout = (clusterSelection == init_method.ClustersPerLayout) ? 1 : 0;
+                    SendMessageToPython(Encoding.UTF8.GetBytes(per_layout.ToString()));
+                    SendMessageToPython(Encoding.UTF8.GetBytes(randomize.ToString()));                    
                     // Sending the number of kmeans
                     SendMessageToPython(Encoding.UTF8.GetBytes(KMeanClusters.ToString()));
                     // Sending the kmean method number

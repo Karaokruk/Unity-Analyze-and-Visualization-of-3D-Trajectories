@@ -289,8 +289,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 996393106557114991, guid: 332fcbf1cb42b9f47b190585c69fa8ad,
         type: 3}
+      propertyPath: KMeanClusters
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 996393106557114991, guid: 332fcbf1cb42b9f47b190585c69fa8ad,
+        type: 3}
+      propertyPath: attuningRatio
+      value: 0.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 996393106557114991, guid: 332fcbf1cb42b9f47b190585c69fa8ad,
+        type: 3}
       propertyPath: softKMeanBeta
       value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 996393106557114991, guid: 332fcbf1cb42b9f47b190585c69fa8ad,
+        type: 3}
+      propertyPath: clusterSelection
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 996393106557114991, guid: 332fcbf1cb42b9f47b190585c69fa8ad,
         type: 3}
